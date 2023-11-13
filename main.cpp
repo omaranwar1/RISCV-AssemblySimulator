@@ -26,6 +26,84 @@ public:
     string label, func, rs1, rs2, rd, imm, label_branching,shamt,j_label;
      
 };
+vector<int> r(32, 0);  // Array for register values, initialized to 0
+map<string,int>register_File;
+void initialize() {
+    // Initialize named registers with their indices
+    register_File["zero"] = 0;  // Constant 0 register
+    register_File["ra"] = 1;    // Return address
+    register_File["sp"] = 2;    // Stack pointer
+    register_File["gp"] = 3;    // Global pointer
+    register_File["tp"] = 4;    // Thread pointer
+    register_File["t0"] = 5;    // Temporary/alternate link register
+    register_File["t1"] = 6;    // Temporaries
+    register_File["t2"] = 7;
+    register_File["s0"] = 8;    // Saved register/frame pointer
+    register_File["fp"] = 8;    // Frame pointer (same as s0)
+    register_File["s1"] = 9;    // Saved register
+
+    // Initialize argument registers (a0-a7)
+    for (int i = 0; i <= 7; ++i) {
+        register_File["a" + to_string(i)] = 10 + i;
+    }
+
+    // Initialize additional saved registers (s2-s11)
+    for (int i = 2; i <= 11; ++i) {
+        register_File["s" + to_string(i)] = 16 + i;
+    }
+
+    // Initialize temporary registers (t3-t6)
+    for (int i = 0; i <= 3; ++i) {
+        register_File["t" + to_string(3 + i)] = 28 + i;
+    }
+
+    // Initialize the first element of the r array
+    r[0] = 0;
+}
+void Functions(vector<types> instructions) {
+    
+    for(auto& inst : instructions) {
+        if(inst.func == "add")//1
+        {
+            int valueRS1 =register_File[inst.rs1];
+            int valueRS2 = register_File[inst.rs2];
+            int result = valueRS1 + valueRS2;
+            
+            r[register_File[inst.rd]] = result;
+            
+            cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") + " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+        }
+        else if(inst.func == "sub")//2
+        {
+            int valueRS1 =register_File[inst.rs1];
+            int valueRS2 = register_File[inst.rs2];
+            
+            int result=0;
+            if(valueRS1>valueRS2)
+            result = valueRS1 - valueRS2;
+            else
+                result=valueRS2-valueRS1;
+            
+            r[register_File[inst.rd]] = result;
+            
+            cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") + " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+        }
+        else if(inst.func == "add")
+        {
+            
+        }
+        
+        
+       
+        
+    }
+    // Output the current state of the registers
+        cout << "Register File State after instruction:" << endl;
+        for (const auto& reg : register_File) {
+            cout << reg.first << " (r[" << reg.second << "]): " << r[reg.second] << endl;
+        }
+        cout << "------------------" << endl;
+}
 
 vector<types> read(vector<string> x) {
     vector<types> result;
@@ -161,15 +239,32 @@ vector<types> read(vector<string> x) {
 
 int main() {
     
-    vector<string> x = {"loop: sll x16,x20,x4", "t1: addi x5,x5,2", "t3: lw t0,4(t1)","bge s0,s3,exit1","sw t0,6(t1)", "exist: jalr x0,4(ra)", "slli x10,x5,2","jal x0,func2","lui x0,0x12345"};
-    vector<types> res = read(x);
+    vector<string> instructions;
+    string input;
 
-    // Output the result for demonstration
-    for (auto& t : res)
-    {
-        cout<<"label:"<<t.label<<" , func:"<<t.func<<", rd:"<< t.rd<<", rs1:"<<t.rs1<<", rs2:"<<t.rs2<<", imm:"<<t.imm<<",branching_label:"<<t.label_branching<<", shamt:"<<t.shamt<<", jump:"<<t.j_label<<endl;
+    cout << "Enter instructions (type 'finish' to exist the loop):" << endl;
+
+    // taking input until the user enters 'finish'
+    while (true) {
+        getline(cin, input);
+        if (input == "finish") {
+            break;
+        }
+        instructions.push_back(input);
     }
-       
+    initialize();
+    vector<types> res = read(instructions);
+   
+    // Output the result for demonstration
+    for (const auto& t : res) {
+        cout << "label: " << t.label << " , func: " << t.func << ", rd: " << t.rd
+             << ", rs1: " << t.rs1 << ", rs2: " << t.rs2 << ", imm: " << t.imm
+             << ", branching_label: " << t.label_branching << ", shamt: " << t.shamt
+             << ", jump: " << t.j_label << endl;
+    }
+    
+    Functions(res);
+
 
     return 0;
 }
