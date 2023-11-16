@@ -108,14 +108,15 @@ void Functions(vector<types> instructions) {
         }   
         else if(inst.func == "addi")//3
         {
-             if(register_File[inst.rd]==0)
+            if(register_File[inst.rd]==0)
+          {
+              cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+          }
+           else
            {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+               r[register_File[inst.rd]] = r[register_File[inst.rs1]] + inst.imm;
+                       cout << "Executed: " << inst.func << " " << inst.rd << "," << inst.rs1 << "," << inst.imm << " Result: " << register_File[inst.rd] << endl;
            }
-            else 
-            {
-          //func code
-            }
             
         }
         
@@ -317,28 +318,40 @@ void Functions(vector<types> instructions) {
                else if(inst.func == "andi")//20
         {
           
-           if(register_File[inst.rd]==0)
-           {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
+            if(register_File[inst.rd]==0)
             {
-                //func code
-             }
+                cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+            }
+             else
+             {
+                 int valueRS1 = r[register_File[inst.rs1]];
+                         int valueRS2 = r[register_File[inst.rs2]];
+                         int result = valueRS1 & valueRS2; // Bitwise AND operation
+
+                         r[register_File[inst.rd]] = result;
+
+                         cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+              }
             
         }
         
                 else if(inst.func == "or")//21
         {
           
-           if(register_File[inst.rd]==0)
-           {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
+            if(register_File[inst.rd]==0)
             {
-                //func code
-             }
+                cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+            }
+             else
+             {
+                         int valueRS1 = r[register_File[inst.rs1]];
+                         int valueRS2 = r[register_File[inst.rs2]];
+                         int result = valueRS1 | valueRS2;
+
+                         r[register_File[inst.rd]] = result;
+
+                         cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+              }
             
         }
         
@@ -359,14 +372,20 @@ void Functions(vector<types> instructions) {
               else if(inst.func == "xor")//23
         {
           
-           if(register_File[inst.rd]==0)
-           {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
+            if(register_File[inst.rd]==0)
             {
-                //func code
-             }
+                cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+            }
+             else
+             {
+                 int valueRS1 = r[register_File[inst.rs1]];
+                 int valueRS2 = r[register_File[inst.rs2]];
+                 int result = valueRS1 ^ valueRS2;
+
+                 r[register_File[inst.rd]] = result;
+
+                 cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+              }
             
         }
         
