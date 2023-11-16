@@ -109,9 +109,8 @@ bool initializeMemory(map<int, int>& memory, int starting_Address, vector<types>
 
 void Functions(vector<types> instructions, vector<string> userInput) {
     
-    auto inst = instructions.begin();
 
-    while(inst != instructions.end()) {
+    for(auto inst  = instructions.begin(); inst != instructions.end(); inst ++) {
         //• Arithmetic: add, addi, sub
         if(inst->func == "add")//1
         {
@@ -128,7 +127,6 @@ void Functions(vector<types> instructions, vector<string> userInput) {
             
             r[register_File[inst->rd]] = result;
             programCounter += 4;
-            inst++;
             cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") + " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
             }
             
@@ -146,7 +144,6 @@ void Functions(vector<types> instructions, vector<string> userInput) {
             
             int result=0;
             programCounter += 4;
-            inst++;
 
             result = valueRS1 - valueRS2;
             r[register_File[inst->rd]] = result;
@@ -178,8 +175,7 @@ void Functions(vector<types> instructions, vector<string> userInput) {
             {
                 int add = inst->imm / 4;
                 int base = r[register_File[inst->rs1]];
-                inst++;
-
+    
                 int result = 0;
                 for (int i = 0; i < 4; i++) 
                 {
@@ -211,8 +207,7 @@ void Functions(vector<types> instructions, vector<string> userInput) {
                 }
                 
                 programCounter += 4;
-                inst++;
-
+    
                 r[register_File[inst->rd]] = result;
             }
             
@@ -236,8 +231,7 @@ void Functions(vector<types> instructions, vector<string> userInput) {
                 }
 
                 programCounter += 4;
-                inst++;
-
+    
                 r[register_File[inst->rd]] = result;
             }
             
@@ -254,7 +248,6 @@ void Functions(vector<types> instructions, vector<string> userInput) {
                 r[register_File[inst->rd]] = temp;
             }
             programCounter += 4;
-            inst++;
         }
         
          else if(inst->func == "lbu")//8
@@ -269,7 +262,6 @@ void Functions(vector<types> instructions, vector<string> userInput) {
                 r[register_File[inst->rd]] = temp;
             }
             programCounter += 4;
-            inst++;
         }
         
         else if(inst->func == "sw")//9
@@ -285,7 +277,6 @@ void Functions(vector<types> instructions, vector<string> userInput) {
             memory[off + add + 2] = (number >> (8)) & 0xFF;
             memory[off + add + 3] = number & 0xFF;
             programCounter += 4;
-            inst++;
 
             cout << "Stored the value " << number << " in a word starting at address " << off + add << " in memory. \n";
         }
@@ -301,7 +292,6 @@ void Functions(vector<types> instructions, vector<string> userInput) {
             memory[off + add + 0] = (number >> (8)) & 0xFF;
             memory[off + add + 1] = number & 0xFF;  
             programCounter += 4;
-            inst++;
 
             cout << "Stored the value " << number << " in a half-word starting at address " << off + add << " in memory. \n";
         }
@@ -311,7 +301,6 @@ void Functions(vector<types> instructions, vector<string> userInput) {
             
             memory[inst->imm / 4 + r[register_File[inst->rs2]]] = r[register_File[inst->rs1]];
             programCounter += 4;
-            inst++;
 
             cout << "Stored the value " << r[register_File[inst->rs1]] << " in a byte starting at address " << inst->imm / 4 + r[register_File[inst->rs2]] << " in memory. \n";
         }
