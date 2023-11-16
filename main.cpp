@@ -364,7 +364,20 @@ void Functions(vector<types> instructions) {
            }
             else 
             {
-                //func code
+                if(register_File[inst.rd]==0)
+                {
+                     cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                }
+                 else
+                 {
+                     int valueRS1 = r[register_File[inst.rs1]];
+                     int valueRS2 = inst.imm;
+                     int result = valueRS1 | valueRS2;
+
+                       result=r[register_File[inst.rd]];
+
+                     cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+                  }
              }
             
         }
@@ -398,7 +411,21 @@ void Functions(vector<types> instructions) {
            }
             else 
             {
-                //func code
+                if(register_File[inst.rd]==0)
+                {
+                    cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                }
+                 else
+                 {
+                     int valueRS1 = r[register_File[inst.rs1]];
+                     int valueRS2 = inst.imm;
+                     int result = valueRS1 ^ valueRS2;
+
+                     r[register_File[inst.rd]] =result;
+
+                     cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+                 }
+                 
              }
             
         }
@@ -464,27 +491,52 @@ void Functions(vector<types> instructions) {
                 else if(inst.func == "slt")//33
         {
           
-           if(register_File[inst.rd]==0)
-           {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
+            if(register_File[inst.rd]==0)
             {
-                //func code
-             }
+                cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+            }
+             else
+             {
+                 int valueRS1 = r[register_File[inst.rs1]];
+                 int valueRS2 = r[register_File[inst.rs2]];
+                 if(valueRS1<valueRS2)
+                 {
+                     r[register_File[inst.rd]] = 1;
+                 }
+                 else
+                 {
+                     r[register_File[inst.rd]] = 0;
+                 }
+                 
+                 int result=r[register_File[inst.rd]];
+                 cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+              }
+             
             
         }
         
                 else if(inst.func == "slti")//34
         {
           
-           if(register_File[inst.rd]==0)
-           {
-              cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
+            if(register_File[inst.rd]==0)
             {
-                //func code
+               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+            }
+             else
+             {
+                 int valueRS1 = r[register_File[inst.rs1]];
+                 int valueRS2 = inst.imm;
+                 if(valueRS1<valueRS2)
+                 {
+                     r[register_File[inst.rd]] = 1;
+                 }
+                 else
+                 {
+                     r[register_File[inst.rd]] = 0;
+                 }
+                 
+                 int result=r[register_File[inst.rd]];
+                 cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
              }
             
         }
@@ -492,27 +544,59 @@ void Functions(vector<types> instructions) {
                 else if(inst.func == "sltu")//35
         {
           
-           if(register_File[inst.rd]==0)
-           {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
+            if(register_File[inst.rd]==0)
             {
-                //func code
-             }
+                cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+            }
+             else
+             {
+                           
+                            unsigned int valueRS1 = static_cast<unsigned int>(r[register_File[inst.rs1]]);
+                            unsigned int valueRS2 = static_cast<unsigned int>(r[register_File[inst.rs2]]);
+
+                            
+                            if(valueRS1 < valueRS2)
+                            {
+                                r[register_File[inst.rd]] = 1;
+                            }
+                            else
+                            {
+                                r[register_File[inst.rd]] = 0;
+                            }
+                             int result=r[register_File[inst.rd]];
+
+                   cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+
+                  
+              }
             
         }
         
                   else if(inst.func == "sltiu")//36
         {
           
-           if(register_File[inst.rd]==0)
-           {
-              cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
+            if(register_File[inst.rd]==0)
             {
-                //func code
+               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+            }
+             else
+             {
+                 unsigned int valueRS1 = static_cast<unsigned int>(r[register_File[inst.rs1]]);
+                 unsigned int valueRS2 = static_cast<unsigned int>(inst.imm);
+
+                 
+                 if(valueRS1 < valueRS2)
+                 {
+                     r[register_File[inst.rd]] = 1;
+                 }
+                 else
+                 {
+                     r[register_File[inst.rd]] = 0;
+                 }
+                  int result=r[register_File[inst.rd]];
+
+               cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+
              }
             
         }
