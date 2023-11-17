@@ -10,6 +10,7 @@
 #include <sstream>
 #include <algorithm>
 #include <map>
+#include <bitset>
 
 using namespace std;
 
@@ -23,15 +24,38 @@ vector<string>jump2={"jal"};
 vector<string>shifiting={"slli","srli","srai"};
 vector<string>lower_upperImm={"lui","auipc"};
 vector<string>halting={"fence", "ecall", "ebreak"};
+
 class types {
 public:
     string func, rs1, rs2, rd,label_branching;
     pair<string,int> label;
     int imm=0;
-     
+    int binRep = -1;
 };
+
+
+string decimalToHex8Digits(int decimalValue) {
+    
+    stringstream ss;
+    ss << uppercase << hex << decimalValue; //convert to Hexadecimal and in uppercase
+    string hexString = ss.str();
+    
+    while (hexString.length() < 8) {
+        hexString = "0" + hexString;    // Pad with '0' to achieve 8 digits
+    }
+    
+    hexString = "0x" + hexString; // Add "0x" at the beginning
+
+    return hexString;
+}
+
+
+
 vector<int> r(32, 0);  // Array for register values, initialized to 0
+int programCounter = 0;
+
 map <string,int> register_File;
+
 void initialize() {
     // Initialize named registers with their indices
     register_File["zero"] = 0;  // Constant 0 register
@@ -64,423 +88,645 @@ void initialize() {
     // Initialize the first element of the r array
     r[0] = 0;
 }
-void Functions(vector<types> instructions) {
+
+
+map<int, int> memory;
+//load instructions into memory
+//load program data into memory
+bool initializeMemory(map<int, int>& memory, int starting_Address, vector<types>& instructions, vector<pair<int, int>>progData)
+{
     
-    for(auto& inst : instructions) {
+    //fadel a3raf type el program data eh (string, int, char, etc. ) 3ashan el number of bytes it will take up
+    for(auto it = progData.begin(); it != progData.end(); it++)
+    {
+        memory[it->first] = it->second;
+    }
+
+    int count = 0;
+    for(auto it = instructions.begin(); it != instructions.end(); it ++)
+    {
+        it->label.second = starting_Address + count;
+
+        for(int i = 0; i < 4; i++)
+        {
+            memory[starting_Address + count + i] = it->binRep;
+
+            // if(memory.count(starting_Address + count + i) == 0)
+            // {
+            //     memory[starting_Address + count + i] = it->binRep;
+            // } else
+            // {
+            //     conflict
+            // }
+        }
+        count += 4;
+    }
+
+
+
+    return true;
+}
+
+void Functions(vector<types>& instructions, vector<string> userInput, int startingAdd) {
+    bool haltingflag=0;
+    instructions.erase(instructions.begin());
+    for(auto inst  = instructions.begin(); inst != instructions.end() && haltingflag!=1; inst ++) {
+        bool branchingFlag = false;
+
         //• Arithmetic: add, addi, sub
-        if(inst.func == "add")//1
+        if(inst->func == "add")//1
         {
           
-           if(register_File[inst.rd]==0)
+           if(register_File[inst->rd]==0)
            {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
            }
-            else 
+            else
             {
-            int valueRS1 =r[register_File[inst.rs1]];
-            int valueRS2 =r[register_File[inst.rs2]];
+
+            int valueRS1 =r[register_File[inst->rs1]];
+            int valueRS2 =r[register_File[inst->rs2]];
             int result = valueRS1 + valueRS2;
-            
-            r[register_File[inst.rd]] = result;
-            
-            cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") + " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+            programCounter = inst->label.second;
+
+            r[register_File[inst->rd]] = result;
+            cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") + " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
             }
             
         }
-        else if(inst.func == "sub")//2
+        else if(inst->func == "sub")//2
         {
-            if(register_File[inst.rd]==0)
+            if(register_File[inst->rd]==0)
            {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
            }
-            else 
+            else
             {
-            int valueRS1 =r[register_File[inst.rs1]];
-            int valueRS2 =r[register_File[inst.rs2]];
-            
+            int valueRS1 =r[register_File[inst->rs1]];
+            int valueRS2 =r[register_File[inst->rs2]];
+            programCounter = inst->label.second;
+
             int result=0;
 
             result = valueRS1 - valueRS2;
-            r[register_File[inst.rd]] = result;
-            cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") - " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+            r[register_File[inst->rd]] = result;
+            cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") - " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
             }
           
-        }   
-        else if(inst.func == "addi")//3
+        }
+        else if(inst->func == "addi")//3
         {
-            if(register_File[inst.rd]==0)
-          {
-              cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
-          }
-           else
+             if(register_File[inst->rd]==0)
            {
-               r[register_File[inst.rd]] = r[register_File[inst.rs1]] + inst.imm;
-                       cout << "Executed: " << inst.func << " " << inst.rd << "," << inst.rs1 << "," << inst.imm << " Result: " << register_File[inst.rd] << endl;
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
            }
+            else
+            {
+              r[register_File[inst->rd]] = r[register_File[inst->rs1]] + inst->imm;
+                       cout << "Executed: " << inst->func << " " << inst->rd << "," << inst->rs1 << "," << inst->imm << " Result: " << register_File[inst->rd] << endl;
+            }
             
         }
         
         //Load/Store: lw, lh, lhu, lb, lbu, sw, sh, sb, lui
-         else if(inst.func == "lw")//4
+         else if(inst->func == "lw")//4
         {
-             if(register_File[inst.rd]==0)
+             if(register_File[inst->rd]==0)
            {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<"(" << inst.rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<"(" << inst->rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
            }
-            else 
+            else
             {
-          //func code
-            }
-            
-        }
-         else if(inst.func == "lh")//5
-        {
-             if(register_File[inst.rd]==0)
-           {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<"(" << inst.rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
-            {
-          //func code
-            }
-            
-        }
-         else if(inst.func == "lhu")//6
-        {
-             if(register_File[inst.rd]==0)
-           {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<"(" << inst.rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
-            {
-          //func code
-            }
-            
-        }
-         else if(inst.func == "lb")//7
-        {
-             if(register_File[inst.rd]==0)
-           {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<"(" << inst.rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
-            {
-          //func code
-            }
-            
-        }
-        
-         else if(inst.func == "lbu")//8
-        {
-             if(register_File[inst.rd]==0)
-           {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<"(" << inst.rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
-            {
-          //func code
-            }
-            
-        }
-        
-            else if(inst.func == "sw")//9
-        {
-             
-          //func code
+                int add = inst->imm / 4;
+                int base = r[register_File[inst->rs1]];
+                programCounter = inst->label.second;
 
+                int result = 0;
+                for (int i = 0; i < 4; i++)
+                {
+                    result = result << 8;
+                    result |= memory[add + base + i] & 0xFF;
+                }
+                r[register_File[inst->rd]] = result;
+
+            }
             
         }
+        //LOAD sa3at bytla3 255
+         else if(inst->func == "lh")//5
+        {
+             if(register_File[inst->rd]==0)
+           {
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<"(" << inst->rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
+            {
+                int add = inst->imm / 4;
+                int base = r[register_File[inst->rs1]];
+                programCounter = inst->label.second;
+
+                int result = 0;
+                for (int i = 0; i < 2; i++)
+                {
+                    result = result << 8;
+                    result |= memory[add + base + i] & 0xFF;
+                }
+                
+    
+                r[register_File[inst->rd]] = result;
+            }
+            
+        }
+         else if(inst->func == "lhu")//6
+        {
+             if(register_File[inst->rd]==0)
+           {
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<"(" << inst->rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
+            {
+                int add = inst->imm / 4;
+                int base = r[register_File[inst->rs1]];
+                programCounter = inst->label.second;
+
+                unsigned result = 0;
+                for (int i = 0; i < 2; i++)
+                {
+                    result = (unsigned int) result << 8;
+                    result |= (unsigned int) memory[add + base + i] & 0xFF;
+                }
+
+    
+                r[register_File[inst->rd]] = result;
+            }
+            
+        }
+         else if(inst->func == "lb")//7
+        {
+             if(register_File[inst->rd]==0)
+           {
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<"(" << inst->rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
+            {
+                int temp = memory[inst->imm / 4 + r[register_File[inst->rs1]]];
+                r[register_File[inst->rd]] = temp;
+                programCounter = inst->label.second;
+            }
+        }
         
-            else if(inst.func == "sh")//10
+         else if(inst->func == "lbu")//8
+        {
+             if(register_File[inst->rd]==0)
+           {
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<"(" << inst->rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
+            {
+                unsigned int temp = memory[inst->imm / 4 + r[register_File[inst->rs1]]];
+                r[register_File[inst->rd]] = temp;
+                programCounter = inst->label.second;
+
+            }
+        }
+        
+        else if(inst->func == "sw")//9
+        {
+                        
+            int number = r[register_File[inst->rs1]];
+            
+            int off = inst->imm / 4;
+            int add = r[register_File[inst->rs2]];
+
+            memory[off + add + 0] = (number >> (24)) & 0xFF;
+            memory[off + add + 1] = (number >> (16)) & 0xFF;
+            memory[off + add + 2] = (number >> (8)) & 0xFF;
+            memory[off + add + 3] = number & 0xFF;
+
+            cout << "Stored the value " << number << " in a word starting at address " << off + add << " in memory. \n";
+            programCounter = inst->label.second;
+
+        }
+        
+            else if(inst->func == "sh")//10
         {
           
-          //func code
+            int number = r[register_File[inst->rs1]];
             
+            int off = inst->imm / 4;
+            int add = r[register_File[inst->rs2]];
+
+            memory[off + add + 0] = (number >> (8)) & 0xFF;
+            memory[off + add + 1] = number & 0xFF;
+            programCounter = inst->label.second;
+
+            cout << "Stored the value " << number << " in a half-word starting at address " << off + add << " in memory. \n";
         }
         
-            else if(inst.func == "sb")//11
+        else if(inst->func == "sb")//11
         {
             
-          //func code
-            
+            memory[inst->imm / 4 + r[register_File[inst->rs2]]] = r[register_File[inst->rs1]];
+            programCounter = inst->label.second;
+
+            cout << "Stored the value " << r[register_File[inst->rs1]] << " in a byte starting at address " << inst->imm / 4 + r[register_File[inst->rs2]] << " in memory. \n";
         }
         
-         else if(inst.func == "lui")//12
+         else if(inst->func == "lui")//12
         {
-             if(register_File[inst.rd]==0)
+             if(register_File[inst->rd]==0)
            {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
            }
-            else 
+            else
             {
-          //func code
+      int result = inst->imm << 12; // Shift the immediate value left by 12 bits
+      r[register_File[inst->rd]] = result;
+       programCounter = inst->label.second;
+
+        cout << "Executed: " << inst->func << " " << inst->rd << "," << inst->imm<< "  Now " <<inst->rd<<"("<<result<<")"<<endl;
+ 
             }
             
         }
        
         //• Logic: sll, slli, srl, srli, sra, srai, and, andi,or, ori, xor, xori
-          else  if(inst.func == "sll")//13
+          else  if(inst->func == "sll")//13
         {
           
-           if(register_File[inst.rd]==0)
+           if(register_File[inst->rd]==0)
            {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
            }
-            else 
+            else
             {
-                //func code
+                  int valueRS1 = r[register_File[inst->rs1]];
+                  int valueRS2 = r[register_File[inst->rs2]];
+                  int result = valueRS1 << valueRS2;
+                  
+
+                  r[register_File[inst->rd]] = result;
+
+                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") shift left logical by " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+             
+            
              }
             
         }
-            else if(inst.func == "slli")//14
+            else if(inst->func == "slli")//14
         {
           
-           if(register_File[inst.rd]==0)
+           if(register_File[inst->rd]==0)
            {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
            }
-            else 
+            else
             {
-                //func code
-             }
-            
-        }
-        
-            else if(inst.func == "srl")//15
-        {
-          
-           if(register_File[inst.rd]==0)
-           {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
-            {
-                //func code
-             }
-            
-        }
-               else if(inst.func == "srli")//16
-        {
-          
-           if(register_File[inst.rd]==0)
-           {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
-            {
-                //func code
+                  int valueRS1 = r[register_File[inst->rs1]];
+                  int valueRS2 = inst->imm;
+                  int result = valueRS1 << valueRS2;
+
+                  r[register_File[inst->rd]] = result;
+
+                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") shift left logical by " << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+             
+         
              }
             
         }
         
-               else if(inst.func == "sra")//17
+            else if(inst->func == "srl")//15
         {
           
-           if(register_File[inst.rd]==0)
+           if(register_File[inst->rd]==0)
            {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
            }
-            else 
+            else
             {
-                //func code
+                  unsigned int valueRS1 = static_cast<unsigned int>( r[register_File[inst->rs1]] );
+                  int valueRS2 = r[register_File[inst->rs2]];
+                  int result = valueRS1 >> valueRS2;
+
+                  r[register_File[inst->rd]] = result;
+
+ cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") shift right logical by " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+            
+             }
+            
+        }
+               else if(inst->func == "srli")//16
+        {
+          
+           if(register_File[inst->rd]==0)
+           {
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
+            {
+                unsigned int valueRS1 = static_cast<unsigned int> (r[register_File[inst->rs1]]);
+                  int valueRS2 = inst->imm;
+                  int result = valueRS1 >> valueRS2;
+
+                  r[register_File[inst->rd]] = result;
+
+                   cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") shift right logical by " << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+             
              }
             
         }
         
-               else if(inst.func == "srai")//18
+               else if(inst->func == "sra")//17
         {
           
-           if(register_File[inst.rd]==0)
+           if(register_File[inst->rd]==0)
            {
-                cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
            }
-            else 
+            else
             {
-                //func code
+                 int valueRS1 = r[register_File[inst->rs1]];
+                 int valueRS2 = r[register_File[inst->rs2]];
+                 int result = valueRS1 >> valueRS2;
+
+                  r[register_File[inst->rd]] = result;
+
+                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") shift right arithmetic by " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+             
+            
              }
             
         }
         
-               else if(inst.func == "and")//19
+               else if(inst->func == "srai")//18
         {
           
-           if(register_File[inst.rd]==0)
+           if(register_File[inst->rd]==0)
            {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
            }
-            else 
+            else
             {
-                //func code
+                  int valueRS1 = r[register_File[inst->rs1]];
+                  int valueRS2 = inst->imm;
+                  int result = valueRS1 >> valueRS2;
+
+                  r[register_File[inst->rd]] = result;
+
+                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") shift right arithmetic by " << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+             
+         
              }
             
         }
         
-               else if(inst.func == "andi")//20
+               else if(inst->func == "and")//19
         {
           
-            if(register_File[inst.rd]==0)
+           if(register_File[inst->rd]==0)
+           {
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
             {
-                cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
-            }
-             else
-             {
-                 int valueRS1 = r[register_File[inst.rs1]];
-                         int valueRS2 = r[register_File[inst.rs2]];
+          int valueRS1 = r[register_File[inst->rs1]];
+                         int valueRS2 = r[register_File[inst->rs2]];
                          int result = valueRS1 & valueRS2; // Bitwise AND operation
 
-                         r[register_File[inst.rd]] = result;
+                         r[register_File[inst->rd]] = result;
 
-                         cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
-              }
-            
-        }
-        
-                else if(inst.func == "or")//21
-        {
-          
-            if(register_File[inst.rd]==0)
-            {
-                cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
-            }
-             else
-             {
-                         int valueRS1 = r[register_File[inst.rs1]];
-                         int valueRS2 = r[register_File[inst.rs2]];
-                         int result = valueRS1 | valueRS2;
-
-                         r[register_File[inst.rd]] = result;
-
-                         cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
-              }
-            
-        }
-        
-              else if(inst.func == "ori")//22
-        {
-          
-           if(register_File[inst.rd]==0)
-           {
-                cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
-           }
-            else 
-            {
-                if(register_File[inst.rd]==0)
-                {
-                     cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
-                }
-                 else
-                 {
-                     int valueRS1 = r[register_File[inst.rs1]];
-                     int valueRS2 = inst.imm;
-                     int result = valueRS1 | valueRS2;
-
-                       result=r[register_File[inst.rd]];
-
-                     cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
-                  }
+                         cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+             
              }
             
         }
         
-              else if(inst.func == "xor")//23
+               else if(inst->func == "andi")//20
         {
           
-            if(register_File[inst.rd]==0)
+           if(register_File[inst->rd]==0)
+           {
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
             {
-                cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
-            }
-             else
-             {
-                 int valueRS1 = r[register_File[inst.rs1]];
-                 int valueRS2 = r[register_File[inst.rs2]];
-                 int result = valueRS1 ^ valueRS2;
-
-                 r[register_File[inst.rd]] = result;
-
-                 cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
-              }
+                //func code
+             }
             
         }
         
-        else if(inst.func == "xori")//24
+                else if(inst->func == "or")//21
         {
           
-           if(register_File[inst.rd]==0)
+           if(register_File[inst->rd]==0)
            {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
            }
-            else 
+            else
             {
-                if(register_File[inst.rd]==0)
-                {
-                    cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
-                }
-                 else
-                 {
-                     int valueRS1 = r[register_File[inst.rs1]];
-                     int valueRS2 = inst.imm;
+                  int valueRS1 = r[register_File[inst->rs1]];
+                         int valueRS2 = r[register_File[inst->rs2]];
+                         int result = valueRS1 | valueRS2;
+
+                         r[register_File[inst->rd]] = result;
+
+                         cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+            
+             }
+            
+        }
+        
+              else if(inst->func == "ori")//22
+        {
+          
+           if(register_File[inst->rd]==0)
+           {
+                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
+            {
+              int valueRS1 = r[register_File[inst->rs1]];
+                     int valueRS2 = inst->imm;
+                     int result = valueRS1 | valueRS2;
+
+                       result=r[register_File[inst->rd]];
+
+                     cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+            }
+             
+            
+        }
+        
+              else if(inst->func == "xor")//23
+        {
+          
+           if(register_File[inst->rd]==0)
+           {
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
+            {
+                int valueRS1 = r[register_File[inst->rs1]];
+                 int valueRS2 = r[register_File[inst->rs2]];
+                 int result = valueRS1 ^ valueRS2;
+
+                 r[register_File[inst->rd]] = result;
+
+                 cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+             
+             }
+            
+        }
+        
+        else if(inst->func == "xori")//24
+        {
+          
+           if(register_File[inst->rd]==0)
+           {
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
+            {
+                int valueRS1 = r[register_File[inst->rs1]];
+                     int valueRS2 = inst->imm;
                      int result = valueRS1 ^ valueRS2;
 
-                     r[register_File[inst.rd]] =result;
+                     r[register_File[inst->rd]] =result;
 
-                     cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
-                 }
-                 
+                     cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
              }
             
         }
         
         //• Control flow: beq, bne, blt, bltu, bge, bgeu, jal,jalr
-        else if(inst.func == "beq")//25
+        else if(inst->func == "beq")//25
+        {
+    
+            if(r[register_File[inst->rs1]] == r[register_File[inst->rs2]])
+            {
+                for(auto it = instructions.begin(); it != instructions.end(); it ++)
+                {
+                    if(it->label.first == inst->label_branching)
+                    {
+                        inst = it;
+                        inst --;
+                        programCounter = it->label.second;
+                        branchingFlag = true;
+                        break;
+                    }
+                }
+            }
+            
+        }
+        
+         else if(inst->func == "bne")//26
+        {
+    
+            if(r[register_File[inst->rs1]] != r[register_File[inst->rs2]])
+            {
+                for(auto it = instructions.begin(); it != instructions.end(); it ++)
+                {
+                    if(it->label.first == inst->label_branching)
+                    {
+                        inst = it;
+                        inst --;
+                        programCounter = it->label.second;
+                        branchingFlag = true;
+                        break;
+                    }
+                }
+            }
+            
+        }
+        
+         else if(inst->func == "blt")//27
+        {
+    
+            if(r[register_File[inst->rs1]] < r[register_File[inst->rs2]])
+            {
+                for(auto it = instructions.begin(); it != instructions.end(); it ++)
+                {
+                    if(it->label.first == inst->label_branching)
+                    {
+                        inst = it;
+                        inst --;
+                        programCounter = it->label.second;
+                        branchingFlag = true;
+                        break;
+                    }
+                }
+            }
+            
+        }
+        
+         else if(inst->func == "bltu")//28
+        {
+    
+            if((unsigned int)r[register_File[inst->rs1]] == (unsigned int)r[register_File[inst->rs2]])
+            {
+                for(auto it = instructions.begin(); it != instructions.end(); it ++)
+                {
+                    if(it->label.first == inst->label_branching)
+                    {
+                        inst = it;
+                        inst --;
+                        programCounter = it->label.second;
+                        branchingFlag = true;
+                        break;
+                    }
+                }
+            }
+            
+        }
+        
+         else if(inst->func == "bge")//29
+        {
+    
+            if(r[register_File[inst->rs1]] > r[register_File[inst->rs2]])
+            {
+                for(auto it = instructions.begin(); it != instructions.end(); it ++)
+                {
+                    if(it->label.first == inst->label_branching)
+                    {
+                        inst = it;
+                        inst --;
+                        programCounter = it->label.second;
+                        branchingFlag = true;
+                        break;
+                    }
+                }
+            }
+            
+        }
+        
+         else if(inst->func == "bgeu")//30
+        {
+    
+            if((unsigned int)r[register_File[inst->rs1]] > (unsigned int)r[register_File[inst->rs2]])
+            {
+                for(auto it = instructions.begin(); it != instructions.end(); it ++)
+                {
+                    if(it->label.first == inst->label_branching)
+                    {
+                        inst = it;
+                        inst --;
+                        programCounter = it->label.second;
+                        branchingFlag = true;
+                        break;
+                    }
+                }
+            }
+            
+        }
+        
+         else if(inst->func == "jal")//31
         {
     
                 //func code
             
         }
         
-         else if(inst.func == "bne")//26
-        {
-    
-                //func code
-            
-        }
-        
-         else if(inst.func == "blt")//27
-        {
-    
-                //func code
-            
-        }
-        
-         else if(inst.func == "bltu")//28
-        {
-    
-                //func code
-            
-        }
-        
-         else if(inst.func == "bge")//29
-        {
-    
-                //func code
-            
-        }
-        
-         else if(inst.func == "bgeu")//30
-        {
-    
-                //func code
-            
-        }
-        
-         else if(inst.func == "jal")//31
-        {
-    
-                //func code
-            
-        }
-        
-         else if(inst.func == "jalr")//32
+         else if(inst->func == "jalr")//32
         {
     
                 //func code
@@ -488,164 +734,182 @@ void Functions(vector<types> instructions) {
         }
         
         //Comparison: slt, slti, sltu, sltui
-                else if(inst.func == "slt")//33
+                else if(inst->func == "slt")//33
         {
           
-            if(register_File[inst.rd]==0)
+           if(register_File[inst->rd]==0)
+           {
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
             {
-                cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
-            }
-             else
-             {
-                 int valueRS1 = r[register_File[inst.rs1]];
-                 int valueRS2 = r[register_File[inst.rs2]];
+                 int valueRS1 = r[register_File[inst->rs1]];
+                 int valueRS2 = r[register_File[inst->rs2]];
                  if(valueRS1<valueRS2)
                  {
-                     r[register_File[inst.rd]] = 1;
+                     r[register_File[inst->rd]] = 1;
                  }
                  else
                  {
-                     r[register_File[inst.rd]] = 0;
+                     r[register_File[inst->rd]] = 0;
                  }
                  
-                 int result=r[register_File[inst.rd]];
-                 cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
-              }
+                 int result=r[register_File[inst->rd]];
+                 cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
              
-            
-        }
-        
-                else if(inst.func == "slti")//34
-        {
-          
-            if(register_File[inst.rd]==0)
-            {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
-            }
-             else
-             {
-                 int valueRS1 = r[register_File[inst.rs1]];
-                 int valueRS2 = inst.imm;
-                 if(valueRS1<valueRS2)
-                 {
-                     r[register_File[inst.rd]] = 1;
-                 }
-                 else
-                 {
-                     r[register_File[inst.rd]] = 0;
-                 }
-                 
-                 int result=r[register_File[inst.rd]];
-                 cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
              }
             
         }
         
-                else if(inst.func == "sltu")//35
+                else if(inst->func == "slti")//34
         {
           
-            if(register_File[inst.rd]==0)
+           if(register_File[inst->rd]==0)
+           {
+              cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
             {
-                cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
-            }
-             else
-             {
-                           
-                            unsigned int valueRS1 = static_cast<unsigned int>(r[register_File[inst.rs1]]);
-                            unsigned int valueRS2 = static_cast<unsigned int>(r[register_File[inst.rs2]]);
+                  int valueRS1 = r[register_File[inst->rs1]];
+                 int valueRS2 = inst->imm;
+                 if(valueRS1<valueRS2)
+                 {
+                     r[register_File[inst->rd]] = 1;
+                 }
+                 else
+                 {
+                     r[register_File[inst->rd]] = 0;
+                 }
+                 
+                 int result=r[register_File[inst->rd]];
+                 cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+          
+             }
+            
+        }
+        
+                else if(inst->func == "sltu")//35
+        {
+          
+           if(register_File[inst->rd]==0)
+           {
+               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
+            {
+                   unsigned int valueRS1 = static_cast<unsigned int>(r[register_File[inst->rs1]]);
+                            unsigned int valueRS2 = static_cast<unsigned int>(r[register_File[inst->rs2]]);
 
                             
                             if(valueRS1 < valueRS2)
                             {
-                                r[register_File[inst.rd]] = 1;
+                                r[register_File[inst->rd]] = 1;
                             }
                             else
                             {
-                                r[register_File[inst.rd]] = 0;
+                                r[register_File[inst->rd]] = 0;
                             }
-                             int result=r[register_File[inst.rd]];
+                             int result=r[register_File[inst->rd]];
 
-                   cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+                   cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
 
-                  
-              }
+              
+             }
             
         }
         
-                  else if(inst.func == "sltiu")//36
+                  else if(inst->func == "sltiu")//36
         {
           
-            if(register_File[inst.rd]==0)
+           if(register_File[inst->rd]==0)
+           {
+              cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+           }
+            else
             {
-               cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.rs1 <<"," << inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
-            }
-             else
-             {
-                 unsigned int valueRS1 = static_cast<unsigned int>(r[register_File[inst.rs1]]);
-                 unsigned int valueRS2 = static_cast<unsigned int>(inst.imm);
+                unsigned int valueRS1 = static_cast<unsigned int>(r[register_File[inst->rs1]]);
+                 unsigned int valueRS2 = static_cast<unsigned int>(inst->imm);
 
                  
                  if(valueRS1 < valueRS2)
                  {
-                     r[register_File[inst.rd]] = 1;
+                     r[register_File[inst->rd]] = 1;
                  }
                  else
                  {
-                     r[register_File[inst.rd]] = 0;
+                     r[register_File[inst->rd]] = 0;
                  }
-                  int result=r[register_File[inst.rd]];
+                  int result=r[register_File[inst->rd]];
 
-               cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") & " << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << result << ")" << endl;
+               cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
 
+            
              }
             
         }
         
-                   else if(inst.func == "auipc")//37
+        else if(inst->func == "auipc")//37
         {
           
-           if(register_File[inst.rd]==0)
+           if(register_File[inst->rd]==0)
            {
-                cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
            }
-            else 
+            else
             {
-                //func code
+        int result = programCounter + (inst->imm << 12);
+        r[register_File[inst->rd]] = result;
+        cout << "Executed: " << inst->func << " " << inst->rd << ","<< inst->imm<<". -> (" << programCounter << ") + " << inst->imm << " -> " << inst->rd << "(" << result << ")" << endl;
              }
             
         }
         
-          else if(inst.func == "fence")//38
+          else if(inst->func == "fence")//38
         {
     
-                //func code
+             haltingflag=1;
+             cout << "Executed: " << inst->func << " Program execution finsihed due to 'halt' instruction." << endl;
+
             
         }
         
          
-          else if(inst.func == "ecall")//39
+          else if(inst->func == "ecall")//39
         {
     
-                //func code
+             haltingflag=1;
+            cout << "Executed: " << inst->func << " Program execution finsihed due to 'halt' instruction." << endl;
             
         }
         
          
-          else if(inst.func == "ebreak")//40
+          else if(inst->func == "ebreak")//40
         {
     
-                //func code
+             haltingflag=1;
+             cout << "Executed: " << inst->func << " Program execution finsihed due to 'halt' instruction." << endl;
             
         }
         
+        // Output the current state of the registers
         
-    }
-    // Output the current state of the registers
-        cout << "Register File State after instruction:" << endl;
+        if(branchingFlag)
+        {
+            cout << "Branching now to label: " << (inst + 1)->label.first << endl;
+            cout << "Current Program Counter Value:  " << programCounter << endl;
+            cout << "---------------------------" << endl;
+            continue;
+        }
+        cout << "Register File State after executing instruction: " << userInput[(programCounter - startingAdd) / 4] << endl;
+        cout<<"           Decimal                  Binary                         Hexadecimal "<<endl;
         for (const auto& reg : register_File) {
-            cout << reg.first << " (r[" << reg.second << "]): " << r[reg.second] << endl;
+            cout << reg.first << " (r[" << reg.second << "]): " << r[reg.second]<<"          0b" << bitset<32>(r[reg.second]) << "          " <<decimalToHex8Digits(r[reg.second])<<endl;
         }
-        cout << "------------------" << endl;
+
+        cout << "Current Program Counter Value:  " << programCounter << endl;
+        cout << "---------------------------" << endl;
+    }
+
 }
 
 vector<types> read(vector<string> x) {
@@ -800,6 +1064,25 @@ int main() {
     vector<string> instructions;
     string input;
 
+    cout << "Enter any data to be initially loaded into the memory (type 'finish' to exist the loop):" << endl;
+    string add, val;
+    vector<pair<int, int>> progData;
+    pair<int, int> temp;
+
+    while (true) {
+        cout << "Starting address of data item (please enter addresses in order):  ";
+        cin >> add;
+        if (add == "finish") {
+            break;
+        }
+
+        cout << "Value of data item:  ";
+        cin >> val;
+        temp.first = stoi(add);
+        temp.second = stoi(val);
+        progData.push_back(temp);
+    }
+
     cout << "Enter instructions (type 'finish' to exist the loop):" << endl;
 
     // taking input until the user enters 'finish'
@@ -813,15 +1096,47 @@ int main() {
     initialize();
     vector<types> res = read(instructions);
    
-    // Output the result for demonstration
-    for (const auto& t : res) {
-        cout << "label: " << t.label.first << " , func: " << t.func << ", rd: " << t.rd
-             << ", rs1: " << t.rs1 << ", rs2: " << t.rs2 << ", imm: " << t.imm
-             << ", branching_label: " << t.label_branching << endl;
-    }
+    // // Output the result for demonstration
+    // for (const auto& t : res) {
+    //     cout << "label: " << t.label.first << " , func: " << t.func << ", rd: " << t.rd
+    //          << ", rs1: " << t.rs1 << ", rs2: " << t.rs2 << ", imm: " << t.imm
+    //          << ", branching_label: " << t.label_branching << endl;
+    // }
+
+
+    bool repeat = false;
+    int progSize = res.size() * 4;
+    int startingAdd;
+    do
+    {
+        cout << "Enter the starting address of the program: " << endl;
+        cin >> startingAdd;
+        repeat = false;
+
+        for(int i = 0; i < progData.size(); i ++)
+        {
+
+            if((progData[i + 1].first - progData[i].first) < progSize && startingAdd > progData[i].first && startingAdd < progData[i + 1].first && (i + 1) != progData.size())
+            {
+                cout << "Please enter a non-conflicting starting address. " << endl;
+                repeat = true;
+            }
+
+            if(((startingAdd < progData[0].first) && (startingAdd + progSize > progData[0].first)) || progData[i].first == startingAdd)
+            {
+                cout << "Please enter a non-conflicting starting address. " << endl;
+                repeat = true;
+            }
+
+        }
+
+    } while (repeat);
     
-    Functions(res);
+    programCounter = startingAdd;
+    initializeMemory(memory, startingAdd, res, progData);
+    Functions(res, instructions, startingAdd);
 
 
     return 0;
 }
+
