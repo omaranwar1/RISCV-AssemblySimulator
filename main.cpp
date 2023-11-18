@@ -67,7 +67,7 @@ void initialize() {
     register_File["t1"] = 6;    // Temporaries
     register_File["t2"] = 7;
     register_File["s0"] = 8;    // Saved register/frame pointer
-    register_File["fp"] = 8;    // Frame pointer (same as s0)
+    //register_File["fp"] = 8;    // Frame pointer (same as s0)
     register_File["s1"] = 9;    // Saved register
 
     // Initialize argument registers (a0-a7)
@@ -128,11 +128,12 @@ bool initializeMemory(map<int, int>& memory, int starting_Address, vector<types>
 }
 
 void Functions(vector<types>& instructions, vector<string> userInput, int startingAdd) {
+
     bool haltingflag=0;
-    instructions.erase(instructions.begin());
+
     for(auto inst  = instructions.begin(); inst != instructions.end() && haltingflag!=1; inst ++) {
         bool branchingFlag = false;
-
+        bool jumpingFlag = false;
         //• Arithmetic: add, addi, sub
         if(inst->func == "add")//1
         {
@@ -140,6 +141,8 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+                programCounter = inst->label.second;
+           
            }
             else
             {
@@ -153,12 +156,15 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
             cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") + " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
             }
             
+            cout << "Memory is unchanged. " << endl;
         }
         else if(inst->func == "sub")//2
         {
             if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
@@ -172,20 +178,25 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
             r[register_File[inst->rd]] = result;
             cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") - " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
             }
-          
+            cout << "Memory is unchanged. " << endl;
         }
         else if(inst->func == "addi")//3
         {
              if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
+                                
+                programCounter = inst->label.second;
               r[register_File[inst->rd]] = r[register_File[inst->rs1]] + inst->imm;
                        cout << "Executed: " << inst->func << " " << inst->rd << "," << inst->rs1 << "," << inst->imm << " Result: " << register_File[inst->rd] << endl;
             }
-            
+            cout << "Memory is unchanged. " << endl;
+
         }
         
         //Load/Store: lw, lh, lhu, lb, lbu, sw, sh, sb, lui
@@ -194,6 +205,8 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
              if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<"(" << inst->rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
@@ -210,7 +223,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                 r[register_File[inst->rd]] = result;
 
             }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         //LOAD sa3at bytla3 255
          else if(inst->func == "lh")//5
@@ -218,6 +231,8 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
              if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<"(" << inst->rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
@@ -235,13 +250,15 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
     
                 r[register_File[inst->rd]] = result;
             }
-            
+            cout << "Memory is unchanged. " << endl;
         }
          else if(inst->func == "lhu")//6
         {
              if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<"(" << inst->rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
@@ -259,13 +276,15 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
     
                 r[register_File[inst->rd]] = result;
             }
-            
+            cout << "Memory is unchanged. " << endl;
         }
          else if(inst->func == "lb")//7
         {
              if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<"(" << inst->rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
@@ -273,6 +292,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                 r[register_File[inst->rd]] = temp;
                 programCounter = inst->label.second;
             }
+            cout << "Memory is unchanged. " << endl;
         }
         
          else if(inst->func == "lbu")//8
@@ -280,6 +300,8 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
              if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<"(" << inst->rs1 <<") !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
@@ -288,6 +310,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                 programCounter = inst->label.second;
 
             }
+            cout << "Memory is unchanged. " << endl;
         }
         
         else if(inst->func == "sw")//9
@@ -337,6 +360,8 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
              if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
@@ -347,7 +372,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
         cout << "Executed: " << inst->func << " " << inst->rd << "," << inst->imm<< "  Now " <<inst->rd<<"("<<result<<")"<<endl;
  
             }
-            
+            cout << "Memory is unchanged. " << endl;
         }
        
         //• Logic: sll, slli, srl, srli, sra, srai, and, andi,or, ori, xor, xori
@@ -357,13 +382,15 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
                   int valueRS1 = r[register_File[inst->rs1]];
                   int valueRS2 = r[register_File[inst->rs2]];
                   int result = valueRS1 << valueRS2;
-                  
+                  programCounter = inst->label.second;
 
                   r[register_File[inst->rd]] = result;
 
@@ -371,7 +398,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
              
             
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
             else if(inst->func == "slli")//14
         {
@@ -379,20 +406,22 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
                   int valueRS1 = r[register_File[inst->rs1]];
                   int valueRS2 = inst->imm;
                   int result = valueRS1 << valueRS2;
-
+                  programCounter = inst->label.second;
                   r[register_File[inst->rd]] = result;
 
                   cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") shift left logical by " << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
              
          
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
             else if(inst->func == "srl")//15
@@ -401,19 +430,21 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
                   unsigned int valueRS1 = static_cast<unsigned int>( r[register_File[inst->rs1]] );
                   int valueRS2 = r[register_File[inst->rs2]];
                   int result = valueRS1 >> valueRS2;
-
+                  programCounter = inst->label.second;
                   r[register_File[inst->rd]] = result;
 
  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") shift right logical by " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
             
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
                else if(inst->func == "srli")//16
         {
@@ -421,19 +452,22 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
                 unsigned int valueRS1 = static_cast<unsigned int> (r[register_File[inst->rs1]]);
                   int valueRS2 = inst->imm;
                   int result = valueRS1 >> valueRS2;
+                  programCounter = inst->label.second;
 
                   r[register_File[inst->rd]] = result;
 
                    cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") shift right logical by " << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
              
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
                else if(inst->func == "sra")//17
@@ -442,12 +476,15 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
                  int valueRS1 = r[register_File[inst->rs1]];
                  int valueRS2 = r[register_File[inst->rs2]];
                  int result = valueRS1 >> valueRS2;
+                 programCounter = inst->label.second;
 
                   r[register_File[inst->rd]] = result;
 
@@ -455,7 +492,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
              
             
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
                else if(inst->func == "srai")//18
@@ -464,12 +501,15 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                 cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                programCounter = inst->label.second;
+
            }
             else
             {
                   int valueRS1 = r[register_File[inst->rs1]];
                   int valueRS2 = inst->imm;
                   int result = valueRS1 >> valueRS2;
+                  programCounter = inst->label.second;
 
                   r[register_File[inst->rd]] = result;
 
@@ -477,7 +517,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
              
          
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
                else if(inst->func == "and")//19
@@ -486,19 +526,21 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
-                        int valueRS1 = r[register_File[inst->rs1]];
-                         int valueRS2 = r[register_File[inst->rs2]];
-                         int result = valueRS1 & valueRS2; // Bitwise AND operation
+                int valueRS1 = r[register_File[inst->rs1]];
+                int valueRS2 = r[register_File[inst->rs2]];
+                int result = valueRS1 & valueRS2; // Bitwise AND operation
+                programCounter = inst->label.second; 
+                r[register_File[inst->rd]] = result;
 
-                         r[register_File[inst->rd]] = result;
-
-                         cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+                cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
              
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
                else if(inst->func == "andi")//20
@@ -507,16 +549,21 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
                  int valueRS1 = r[register_File[inst->rs1]];
-                 int valueRS2 = inst.imm;
+                 int valueRS2 = inst->imm;
                  int result = valueRS1 & valueRS2; // Bitwise AND operation
 
                  r[register_File[inst->rd]] = result;
 
                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+
+                programCounter = inst->label.second; 
+                cout << "Memory is unchanged. " << endl;
              }
             
         }
@@ -527,19 +574,21 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
-                  int valueRS1 = r[register_File[inst->rs1]];
-                         int valueRS2 = r[register_File[inst->rs2]];
-                         int result = valueRS1 | valueRS2;
+                int valueRS1 = r[register_File[inst->rs1]];
+                int valueRS2 = r[register_File[inst->rs2]];
+                int result = valueRS1 | valueRS2;
+                programCounter = inst->label.second;
+                r[register_File[inst->rd]] = result;
 
-                         r[register_File[inst->rd]] = result;
-
-                         cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+                cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
             
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
               else if(inst->func == "ori")//22
@@ -548,18 +597,20 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                 cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                programCounter = inst->label.second;
+
            }
             else
             {
-              int valueRS1 = r[register_File[inst->rs1]];
-                     int valueRS2 = inst->imm;
-                     int result = valueRS1 | valueRS2;
+                int valueRS1 = r[register_File[inst->rs1]];
+                int valueRS2 = inst->imm;
+                int result = valueRS1 | valueRS2;
+                programCounter = inst->label.second;
+                result=r[register_File[inst->rd]];
 
-                       result=r[register_File[inst->rd]];
-
-                     cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+                cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
             }
-             
+             cout << "Memory is unchanged. " << endl;
             
         }
         
@@ -569,19 +620,21 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
                 int valueRS1 = r[register_File[inst->rs1]];
-                 int valueRS2 = r[register_File[inst->rs2]];
-                 int result = valueRS1 ^ valueRS2;
-
+                int valueRS2 = r[register_File[inst->rs2]];
+                int result = valueRS1 ^ valueRS2;
+                programCounter = inst->label.second;
                  r[register_File[inst->rd]] = result;
 
                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
              
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
         else if(inst->func == "xori")//24
@@ -590,18 +643,21 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
                 int valueRS1 = r[register_File[inst->rs1]];
                      int valueRS2 = inst->imm;
                      int result = valueRS1 ^ valueRS2;
+                programCounter = inst->label.second;
 
                      r[register_File[inst->rd]] =result;
 
                      cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
         //• Control flow: beq, bne, blt, bltu, bge, bgeu, jal,jalr
@@ -622,7 +678,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                     }
                 }
             }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
          else if(inst->func == "bne")//26
@@ -642,7 +698,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                     }
                 }
             }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
          else if(inst->func == "blt")//27
@@ -662,7 +718,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                     }
                 }
             }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
          else if(inst->func == "bltu")//28
@@ -682,7 +738,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                     }
                 }
             }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
          else if(inst->func == "bge")//29
@@ -702,7 +758,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                     }
                 }
             }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
          else if(inst->func == "bgeu")//30
@@ -722,21 +778,52 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                     }
                 }
             }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
          else if(inst->func == "jal")//31
         {
-    
-                //func code
-            
+            if(inst == instructions.end() - 1)
+                r[register_File[inst->rd]] = instructions.begin()->label.second;
+            else
+                r[register_File[inst->rd]] = ((inst + 1)->label.second);
+
+            for(auto it = instructions.begin(); it != instructions.end(); it ++)
+            {
+                if(it->label.first == inst->label_branching)
+                {
+                    inst = it;
+                    inst --;
+                    programCounter = it->label.second;
+                    jumpingFlag = true;
+                    break;
+                }
+            }
+            cout << "Memory is unchanged. " << endl;
         }
         
          else if(inst->func == "jalr")//32
         {
-    
+            if(inst == instructions.end() - 1)
+                r[register_File[inst->rd]] = instructions.begin()->label.second;
+            else
+                r[register_File[inst->rd]] = ((inst + 1)->label.second);
+
+            int targetAddress = r[register_File[inst->rs1]] + inst->imm;
+                
+            for(auto it = instructions.begin(); it != instructions.end(); it ++)
+            {
+                if(it->label.second == targetAddress)
+                {
+                    inst = it;
+                    inst --;
+                    programCounter = it->label.second;
+                    jumpingFlag = true;
+                    break;
+                }
+            }
                 //func code
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
         //Comparison: slt, slti, sltu, sltui
@@ -746,6 +833,8 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
+
            }
             else
             {
@@ -759,12 +848,13 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                  {
                      r[register_File[inst->rd]] = 0;
                  }
-                 
+                 programCounter = inst->label.second;
                  int result=r[register_File[inst->rd]];
                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
              
              }
-            
+
+            cout << "Memory is unchanged. " << endl;
         }
         
                 else if(inst->func == "slti")//34
@@ -773,6 +863,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+              programCounter = inst->label.second;
            }
             else
             {
@@ -786,12 +877,12 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                  {
                      r[register_File[inst->rd]] = 0;
                  }
-                 
+                 programCounter = inst->label.second;
                  int result=r[register_File[inst->rd]];
                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
           
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
                 else if(inst->func == "sltu")//35
@@ -800,6 +891,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->rs2 <<" !!!Zero Register cannot be altered!!!"<< endl;
+               programCounter = inst->label.second;
            }
             else
             {
@@ -816,12 +908,13 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                                 r[register_File[inst->rd]] = 0;
                             }
                              int result=r[register_File[inst->rd]];
+                programCounter = inst->label.second;
 
-                   cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+                cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
 
               
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
                   else if(inst->func == "sltiu")//36
@@ -830,6 +923,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
               cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->rs1 <<"," << inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+              programCounter = inst->label.second;
            }
             else
             {
@@ -846,12 +940,13 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                      r[register_File[inst->rd]] = 0;
                  }
                   int result=r[register_File[inst->rd]];
+                programCounter = inst->label.second;
 
                cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
 
             
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
         else if(inst->func == "auipc")//37
@@ -860,14 +955,17 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            if(register_File[inst->rd]==0)
            {
                 cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                programCounter = inst->label.second;
+
            }
             else
             {
         int result = programCounter + (inst->imm << 12);
         r[register_File[inst->rd]] = result;
+        programCounter = inst->label.second;
         cout << "Executed: " << inst->func << " " << inst->rd << ","<< inst->imm<<". -> (" << programCounter << ") + " << inst->imm << " -> " << inst->rd << "(" << result << ")" << endl;
              }
-            
+            cout << "Memory is unchanged. " << endl;
         }
         
           else if(inst->func == "fence")//38
@@ -886,8 +984,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
              haltingflag=1;
             cout << "Executed: " << inst->func << " Program execution finsihed due to 'halt' instruction." << endl;
             
-        }
-        
+        } 
          
           else if(inst->func == "ebreak")//40
         {
@@ -896,190 +993,224 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
              cout << "Executed: " << inst->func << " Program execution finsihed due to 'halt' instruction." << endl;
             
         }
-          else if (inst.func=="mul")
+                  else if (inst->func=="mul")
           {
-              if(register_File[inst.rd]==0)
+              if(register_File[inst->rd]==0)
               {
-                  cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  programCounter = inst->label.second;
               }
               else
               {
-                  int64_t mul_Result = static_cast<int64_t>(r[register_File[inst.rs1]]) * static_cast<int64_t>(r[register_File[inst.rs2]]);
-                  r[register_File[inst.rd]] = static_cast<int32_t>(mul_Result); // Assuming 32-bit registers, storing lower 32 bits of result
-                  
-                  cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << r[register_File[inst.rs1]] << ") * "
-                  << inst.rs2 << "(" << r[register_File[inst.rs2]] << ") -> " << inst.rd << "(" << r[register_File[inst.rd]] << ")" << endl;
+                  int64_t mul_Result = static_cast<int64_t>(r[register_File[inst->rs1]]) * static_cast<int64_t>(r[register_File[inst->rs2]]);
+                  r[register_File[inst->rd]] = static_cast<int32_t>(mul_Result); // Assuming 32-bit registers, storing lower 32 bits of result
+                                   programCounter = inst->label.second;
+                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << r[register_File[inst->rs1]] << ") * "
+                  << inst->rs2 << "(" << r[register_File[inst->rs2]] << ") -> " << inst->rd << "(" << r[register_File[inst->rd]] << ")" << endl;
               }
           }
-          else if(inst.func=="mulh")
+          else if(inst->func=="mulh")
           {
-              if(register_File[inst.rd]==0)
+              if(register_File[inst->rd]==0)
               {
-                  cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  programCounter = inst->label.second;
               }
               else
               {
-                  int64_t valueRS1 = static_cast<int64_t>(r[register_File[inst.rs1]]);
-                  int64_t valueRS2 = static_cast<int64_t>(r[register_File[inst.rs2]]);
+                  int64_t valueRS1 = static_cast<int64_t>(r[register_File[inst->rs1]]);
+                  int64_t valueRS2 = static_cast<int64_t>(r[register_File[inst->rs2]]);
                   
                   int64_t multiplication_Result = valueRS1 * valueRS2;
                   int32_t highest_Result = static_cast<int32_t>(multiplication_Result >> 32);
                   
-                  r[register_File[inst.rd]] = highest_Result;
-                  
-                  cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") * "
-                  << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << highest_Result << ")" << endl;
+                  r[register_File[inst->rd]] = highest_Result;
+                                   programCounter = inst->label.second;
+                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") * "
+                  << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << highest_Result << ")" << endl;
               }
           }
-          else if(inst.func=="mulhsu")
+          else if(inst->func=="mulhsu")
           {
-              if(register_File[inst.rd]==0)
+              if(register_File[inst->rd]==0)
               {
-                  cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  programCounter = inst->label.second;
+
               }
               else
               {
-                  int64_t signed_Value = static_cast<int64_t>(r[register_File[inst.rs1]]);
-                  uint64_t unsigned_Value = static_cast<uint64_t>(r[register_File[inst.rs2]]);
+                  int64_t signed_Value = static_cast<int64_t>(r[register_File[inst->rs1]]);
+                  uint64_t unsigned_Value = static_cast<uint64_t>(r[register_File[inst->rs2]]);
                   
                   int64_t ResultOfMultiplication = signed_Value * unsigned_Value;
                   int32_t highest_Result = static_cast<int32_t>(ResultOfMultiplication >> 32);
                   
-                  r[register_File[inst.rd]] = highest_Result;
-                  
-                  cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << signed_Value << ") * "
-                  << inst.rs2 << "(" << unsigned_Value << ") -> " << inst.rd << "(" << highest_Result << ")" << endl;
+                  r[register_File[inst->rd]] = highest_Result;
+                                   programCounter = inst->label.second;
+                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << signed_Value << ") * "
+                  << inst->rs2 << "(" << unsigned_Value << ") -> " << inst->rd << "(" << highest_Result << ")" << endl;
                   
               }
           }
-          else if(inst.func=="mulhu")
+          else if(inst->func=="mulhu")
           {
-              if(register_File[inst.rd]==0)
+              if(register_File[inst->rd]==0)
               {
-                  cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  programCounter = inst->label.second;
+
               }
               else
               {
-                  uint64_t valueRS1 = static_cast<uint64_t>(r[register_File[inst.rs1]]);
-                  uint64_t valueRS2 = static_cast<uint64_t>(r[register_File[inst.rs2]]);
+                  uint64_t valueRS1 = static_cast<uint64_t>(r[register_File[inst->rs1]]);
+                  uint64_t valueRS2 = static_cast<uint64_t>(r[register_File[inst->rs2]]);
                   
                   uint64_t multiplicationResult = valueRS1 * valueRS2;
                   uint32_t highResult = static_cast<uint32_t>(multiplicationResult >> 32);
                   
-                  r[register_File[inst.rd]] = highResult;
-                  
-                  cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << valueRS1 << ") * "
-                  << inst.rs2 << "(" << valueRS2 << ") -> " << inst.rd << "(" << highResult << ")" << endl;
+                  r[register_File[inst->rd]] = highResult;
+                                   programCounter = inst->label.second;
+                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") * "
+                  << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << highResult << ")" << endl;
                   
               }
           }
-          else if(inst.func=="div")
+          else if(inst->func=="div")
           {
-              if(register_File[inst.rd]==0)
+              if(register_File[inst->rd]==0)
               {
-                  cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  programCounter = inst->label.second;
+
               }
               else
               {
-                  int divisor=r[register_File[inst.rs2]];
+                  int divisor=r[register_File[inst->rs2]];
                   if(divisor==0)
                   {
                       cout<<"we can't divide by zero!!"<<endl;
                   }
                   else
                   {
-                      int32_t dividend = r[register_File[inst.rs1]];
+                      int32_t dividend = r[register_File[inst->rs1]];
                       int32_t Resultofdivision = dividend / divisor;
-                      r[register_File[inst.rd]] = Resultofdivision;
+                      r[register_File[inst->rd]] = Resultofdivision;
                       
-                      cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << dividend << ") / "
-                      << inst.rs2 << "(" << divisor << ") -> " << inst.rd << "(" << Resultofdivision << ")" << endl;
+                      cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << dividend << ") / "
+                      << inst->rs2 << "(" << divisor << ") -> " << inst->rd << "(" << Resultofdivision << ")" << endl;
                   }
                   
-                  
+                                   programCounter = inst->label.second;
+
               }
           }
-          else if(inst.func=="divu")
+          else if(inst->func=="divu")
           {
               
-              if(register_File[inst.rd]==0)
+              if(register_File[inst->rd]==0)
               {
-                  cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  programCounter = inst->label.second;
+
               }
               else
               {
-                  uint32_t divisor = static_cast<uint32_t>(r[register_File[inst.rs2]]);
+                  uint32_t divisor = static_cast<uint32_t>(r[register_File[inst->rs2]]);
                   if(divisor==0)
                   {
                       cout<<"we can't divide by zero!!"<<endl;
                   }
                   else
                   {
-                      uint32_t dividend = static_cast<uint32_t>(r[register_File[inst.rs1]]);
+                      uint32_t dividend = static_cast<uint32_t>(r[register_File[inst->rs1]]);
                       uint32_t Resultofdivision = dividend / divisor;
-                      r[register_File[inst.rd]] = Resultofdivision;
+                      r[register_File[inst->rd]] = Resultofdivision;
                       
-                      cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << dividend << ") / "
-                      << inst.rs2 << "(" << divisor << ") -> " << inst.rd << "(" << Resultofdivision << ")" << endl;
+                      cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << dividend << ") / "
+                      << inst->rs2 << "(" << divisor << ") -> " << inst->rd << "(" << Resultofdivision << ")" << endl;
                   }
-                  
+                                   programCounter = inst->label.second;
+
               }
               
               
               
           }
           
-          else if (inst.func=="rem")
+          else if (inst->func=="rem")
           {
-              if(register_File[inst.rd]==0)
+              if(register_File[inst->rd]==0)
               {
-                  cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                  programCounter = inst->label.second;
+
               }
               else
               {
-                  int32_t divisor = r[register_File[inst.rs2]];
+                  int32_t divisor = r[register_File[inst->rs2]];
                   if (divisor == 0)
                   {
                       cout<<"we can't divide by zero!!"<<endl;
                   }
                   else
                   {
-                      int32_t dividend = r[register_File[inst.rs1]];
+                      int32_t dividend = r[register_File[inst->rs1]];
                       int32_t remainder = dividend % divisor;
-                      r[register_File[inst.rd]] = remainder;
+                      r[register_File[inst->rd]] = remainder;
                       
-                      cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << dividend << ") % "
-                      << inst.rs2 << "(" << divisor << ") -> " << inst.rd << "(" << remainder << ")" << endl;
+                      cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << dividend << ") % "
+                      << inst->rs2 << "(" << divisor << ") -> " << inst->rd << "(" << remainder << ")" << endl;
                   }
+                                   programCounter = inst->label.second;
+
               }
           }
-              else if (inst.func=="remu")
+              else if (inst->func=="remu")
               {
-                  if(register_File[inst.rd]==0)
+                  if(register_File[inst->rd]==0)
                   {
-                      cout << "Executed: " << inst.func << " " << inst.rd  <<","<< inst.imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                      cout << "Executed: " << inst->func << " " << inst->rd  <<","<< inst->imm <<" !!!Zero Register cannot be altered!!!"<< endl;
+                      programCounter = inst->label.second;
                   }
                   else
                   {
-                      int32_t divisor = static_cast<uint32_t>( r[register_File[inst.rs2]]);
+                      int32_t divisor = static_cast<uint32_t>( r[register_File[inst->rs2]]);
                       if (divisor == 0)
                       {
                           cout<<"we can't divide by zero!!"<<endl;
                       }
                       else
                       {
-                          int32_t dividend =static_cast<uint32_t>( r[register_File[inst.rs1]]);
+                          int32_t dividend =static_cast<uint32_t>( r[register_File[inst->rs1]]);
                           int32_t remainder = dividend % divisor;
-                          r[register_File[inst.rd]] = remainder;
+                          r[register_File[inst->rd]] = remainder;
                           
-                          cout << "Executed: " << inst.func << " " << inst.rs1 << "(" << dividend << ") % "
-                          << inst.rs2 << "(" << divisor << ") -> " << inst.rd << "(" << remainder << ")" << endl;
+                          cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << dividend << ") % "
+                          << inst->rs2 << "(" << divisor << ") -> " << inst->rd << "(" << remainder << ")" << endl;
                       }
                   }
+                                   programCounter = inst->label.second;
               }
+
         
         // Output the current state of the registers
-        
+
+         if(jumpingFlag)
+        {
+            cout << "Jumping now to label: " << (inst + 1)->label.first << endl;
+            cout << "Current Program Counter Value:  " << programCounter << endl;
+            cout << "---------------------------" << endl;
+            cout << "Register File State after executing jumping instruction: " << endl;
+            cout<<"           Decimal                  Binary                         Hexadecimal "<<endl;
+            for (const auto& reg : register_File) {
+                cout << reg.first << " (r[" << reg.second << "]): " << r[reg.second]<<"          0b" << bitset<32>(r[reg.second]) << "          " <<decimalToHex8Digits(r[reg.second])<<endl;
+            }          
+            cout << "---------------------------" << endl;
+  
+            continue;
+        }
+
         if(branchingFlag)
         {
             cout << "Branching now to label: " << (inst + 1)->label.first << endl;
@@ -1281,6 +1412,8 @@ int main() {
         instructions.push_back(input);
     }
     initialize();
+
+    instructions.erase(instructions.begin());
     vector<types> res = read(instructions);
    
     // // Output the result for demonstration
@@ -1326,4 +1459,3 @@ int main() {
 
     return 0;
 }
-
