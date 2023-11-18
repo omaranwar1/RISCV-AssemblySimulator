@@ -14,7 +14,7 @@
 
 using namespace std;
 
-vector<string>R_type = {"add", "sub", "sll", "slt", "sltu", "xor", "srl", "sra", "or", "and"};
+vector<string>R_type = {"add", "sub", "sll", "slt", "sltu", "xor", "srl", "sra", "or","and","mul","mulh","mulhsh","mulhu","div","divu","rem","remu"};
 vector<string>I_type = {"addi", "slti", "sltiu", "xori", "ori", "andi"};
 vector<string>I_type2={"lb","lh","lw","lbu","lhu"};
 vector<string>B_type={"beq","bne","blt","bge","bltu","bgeu"};
