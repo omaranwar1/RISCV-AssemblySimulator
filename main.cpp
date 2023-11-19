@@ -669,7 +669,8 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
         //• Control flow: beq, bne, blt, bltu, bge, bgeu, jal,jalr
         else if(inst->func == "beq")//25
         {
-    
+     int valueRS1 = r[register_File[inst->rs1]];
+     int valueRS2 = r[register_File[inst->rs2]];
             if(r[register_File[inst->rs1]] == r[register_File[inst->rs2]])
             {
                 for(auto it = instructions.begin(); it != instructions.end(); it ++)
@@ -680,6 +681,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                         inst --;
                         programCounter = it->label.second;
                         branchingFlag = true;
+                        cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") , " << inst->rs2 << "(" << valueRS2 << ") , " << inst->label_branching<< endl;
                         break;
                     }
                 }
@@ -689,7 +691,9 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
         
          else if(inst->func == "bne")//26
         {
-    
+     int valueRS1 = r[register_File[inst->rs1]];
+     int valueRS2 = r[register_File[inst->rs2]];
+     cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") , " << inst->rs2 << "(" << valueRS2 << ") , " << inst->label_branching<< endl;
             if(r[register_File[inst->rs1]] != r[register_File[inst->rs2]])
             {
                 for(auto it = instructions.begin(); it != instructions.end(); it ++)
@@ -709,7 +713,9 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
         
          else if(inst->func == "blt")//27
         {
-    
+      int valueRS1 = r[register_File[inst->rs1]];
+      int valueRS2 = r[register_File[inst->rs2]];
+       cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") , " << inst->rs2 << "(" << valueRS2 << ") , " << inst->label_branching<< endl;
             if(r[register_File[inst->rs1]] < r[register_File[inst->rs2]])
             {
                 for(auto it = instructions.begin(); it != instructions.end(); it ++)
@@ -720,7 +726,8 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                         inst --;
                         programCounter = it->label.second;
                         branchingFlag = true;
-                        break;
+                         
+                         break;
                     }
                 }
             }
@@ -729,8 +736,10 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
         
          else if(inst->func == "bltu")//28
         {
-    
-            if((unsigned int)r[register_File[inst->rs1]] == (unsigned int)r[register_File[inst->rs2]])
+     int valueRS1 = r[register_File[inst->rs1]];
+     int valueRS2 = r[register_File[inst->rs2]];
+      cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") , " << inst->rs2 << "(" << valueRS2 << ") , " << inst->label_branching<< endl;
+            if((unsigned int)r[register_File[inst->rs1]] < (unsigned int)r[register_File[inst->rs2]])
             {
                 for(auto it = instructions.begin(); it != instructions.end(); it ++)
                 {
@@ -749,7 +758,9 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
         
          else if(inst->func == "bge")//29
         {
-    
+     int valueRS1 = r[register_File[inst->rs1]];
+     int valueRS2 = r[register_File[inst->rs2]];
+      cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") , " << inst->rs2 << "(" << valueRS2 << ") , " << inst->label_branching<< endl;
             if(r[register_File[inst->rs1]] > r[register_File[inst->rs2]])
             {
                 for(auto it = instructions.begin(); it != instructions.end(); it ++)
@@ -769,7 +780,9 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
         
          else if(inst->func == "bgeu")//30
         {
-    
+     int valueRS1 = r[register_File[inst->rs1]];
+     int valueRS2 = r[register_File[inst->rs2]];
+      cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") , " << inst->rs2 << "(" << valueRS2 << ") , " << inst->label_branching<< endl;
             if((unsigned int)r[register_File[inst->rs1]] > (unsigned int)r[register_File[inst->rs2]])
             {
                 for(auto it = instructions.begin(); it != instructions.end(); it ++)
@@ -979,7 +992,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
     
              haltingflag=1;
              cout << "Executed: " << inst->func << " Program execution finsihed due to 'halt' instruction." << endl;
-
+            return;
             
         }
         
@@ -1122,7 +1135,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
               }
               else
               {
-                  uint32_t divisor = static_cast<uint32_t>(r[register_File[inst->rs2]]);
+                  unsigned int divisor = static_cast<unsigned int>(r[register_File[inst->rs2]]);
                   if(divisor==0)
                   {
                       cout<<"we can't divide by zero!!"<<endl;
