@@ -671,6 +671,8 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
         {
      int valueRS1 = r[register_File[inst->rs1]];
      int valueRS2 = r[register_File[inst->rs2]];
+     cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") , " << inst->rs2 << "(" << valueRS2 << ") , " << inst->label_branching<< endl;
+     
             if(r[register_File[inst->rs1]] == r[register_File[inst->rs2]])
             {
                 for(auto it = instructions.begin(); it != instructions.end(); it ++)
@@ -681,7 +683,6 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                         inst --;
                         programCounter = it->label.second;
                         branchingFlag = true;
-                        cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") , " << inst->rs2 << "(" << valueRS2 << ") , " << inst->label_branching<< endl;
                         break;
                     }
                 }
@@ -1002,7 +1003,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
     
              haltingflag=1;
             cout << "Executed: " << inst->func << " Program execution finsihed due to 'halt' instruction." << endl;
-            
+            return;
         }
          
           else if(inst->func == "ebreak")//40
@@ -1010,7 +1011,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
     
              haltingflag=1;
              cout << "Executed: " << inst->func << " Program execution finsihed due to 'halt' instruction." << endl;
-            
+             return;
         }
                   else if (inst->func=="mul")
           {
@@ -1021,11 +1022,13 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
               }
               else
               {
-                  long long int mul_Result = static_cast<long long int>(r[register_File[inst->rs1]]) * static_cast<int64_t>(r[register_File[inst->rs2]]);
+                  long long int valueRS1 = static_cast<long long int>(r[register_File[inst->rs1]]);
+                  long long int valueRS2 = static_cast<long long int>(r[register_File[inst->rs2]]);
+                  long long int mul_Result = valueRS1 * valueRS2;
                   r[register_File[inst->rd]] = static_cast<int>(mul_Result); // Assuming 32-bit registers, storing lower 32 bits of result
                                    programCounter = inst->label.second;
-                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << r[register_File[inst->rs1]] << ") * "
-                  << inst->rs2 << "(" << r[register_File[inst->rs2]] << ") -> " << inst->rd << "(" << r[register_File[inst->rd]] << ")" << endl;
+                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") * "
+                  << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << r[register_File[inst->rd]] << ")" << endl;
               }
           }
           else if(inst->func=="mulh")
@@ -1237,7 +1240,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
             cout << "---------------------------" << endl;
             continue;
         }
-        cout << "Register File State after executing instruction: " << userInput[(programCounter - startingAdd) / 4] << endl;
+        cout << "Register File State after executing last instruction: " << userInput[(programCounter - startingAdd) / 4] << endl;
         cout<<"           Decimal                  Binary                         Hexadecimal "<<endl;
         for (const auto& reg : register_File) {
             cout << reg.first << " (r[" << reg.second << "]): " << r[reg.second]<<"          0b" << bitset<32>(r[reg.second]) << "          " <<decimalToHex8Digits(r[reg.second])<<endl;
