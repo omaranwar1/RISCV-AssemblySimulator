@@ -223,7 +223,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            }
             else
             {
-                int add = inst->imm / 4;
+                int add = inst->imm;
                 int base = r[register_File[inst->rs1]];
                 programCounter = inst->label.second;
 
@@ -249,7 +249,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            }
             else
             {
-                int add = inst->imm / 4;
+                int add = inst->imm;
                 int base = r[register_File[inst->rs1]];
                 programCounter = inst->label.second;
 
@@ -275,7 +275,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            }
             else
             {
-                int add = inst->imm / 4;
+                int add = inst->imm;
                 int base = r[register_File[inst->rs1]];
                 programCounter = inst->label.second;
 
@@ -301,7 +301,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            }
             else
             {
-                int temp = memory[inst->imm / 4 + r[register_File[inst->rs1]]];
+                int temp = memory[inst->imm + r[register_File[inst->rs1]]];
                 r[register_File[inst->rd]] = temp;
                 programCounter = inst->label.second;
             }
@@ -318,7 +318,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
            }
             else
             {
-                unsigned int temp = memory[inst->imm / 4 + r[register_File[inst->rs1]]];
+                unsigned int temp = memory[inst->imm + r[register_File[inst->rs1]]];
                 r[register_File[inst->rd]] = temp;
                 programCounter = inst->label.second;
 
@@ -331,7 +331,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                         
             int number = r[register_File[inst->rs1]];
             
-            int off = inst->imm / 4;
+            int off = inst->imm;
             int add = r[register_File[inst->rs2]];
 
             memory[off + add + 0] = (number >> (24)) & 0xFF;
@@ -349,7 +349,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
           
             int number = r[register_File[inst->rs1]];
             
-            int off = inst->imm / 4;
+            int off = inst->imm;
             int add = r[register_File[inst->rs2]];
 
             memory[off + add + 0] = (number >> (8)) & 0xFF;
@@ -362,7 +362,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
         else if(inst->func == "sb")//11
         {
             
-            memory[inst->imm / 4 + r[register_File[inst->rs2]]] = r[register_File[inst->rs1]];
+            memory[inst->imm + r[register_File[inst->rs2]]] = r[register_File[inst->rs1]];
             programCounter = inst->label.second;
 
             cout << "Stored the value " << r[register_File[inst->rs1]] << " in a byte starting at address " << inst->imm / 4 + r[register_File[inst->rs2]] << " in memory. \n";
