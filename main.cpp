@@ -99,7 +99,14 @@ bool initializeMemory(map<int, int>& memory, int starting_Address, vector<types>
     //fadel a3raf type el program data eh (string, int, char, etc. ) 3ashan el number of bytes it will take up
     for(auto it = progData.begin(); it != progData.end(); it++)
     {
-        memory[it->first] = it->second;
+        int number = it->second;
+        int add = it->first;
+
+        memory[add + 0] = (number >> (24)) & 0xFF;
+        memory[add + 1] = (number >> (16)) & 0xFF;
+        memory[add + 2] = (number >> (8)) & 0xFF;
+        memory[add + 3] = number & 0xFF;
+
     }
 
     int count = 0;
