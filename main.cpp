@@ -1,10 +1,16 @@
+//
+//  main.cpp
+//  Assembly_project
+//
+//  Created by Amal Fouda on 10/11/2023.
+//
+
 #include <iostream>
 #include <vector>
 #include <sstream>
 #include <algorithm>
 #include <map>
 #include <bitset>
-#include <limits>
 
 using namespace std;
 
@@ -185,10 +191,16 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
             else
             {
                                 
-                programCounter = inst->label.second;
-              r[register_File[inst->rd]] = r[register_File[inst->rs1]] + inst->imm;
-                       cout << "Executed: " << inst->func << " " << inst->rd << "," << inst->rs1 << "," << inst->imm << " Result: " << register_File[inst->rd] << endl;
+           
+            int valueRS1 =r[register_File[inst->rs1]];
+            int valueRS2 =inst->imm;
+            int result = valueRS1 + valueRS2;
+            programCounter = inst->label.second;
+
+            r[register_File[inst->rd]] = result;
+            cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") + " << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
             }
+            
             cout << "Memory is unchanged. " << endl;
 
         }
@@ -579,7 +591,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                 programCounter = inst->label.second;
                 r[register_File[inst->rd]] = result;
 
-                cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+                cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") or " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
             
              }
             cout << "Memory is unchanged. " << endl;
@@ -600,9 +612,9 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                 int valueRS2 = inst->imm;
                 int result = valueRS1 | valueRS2;
                 programCounter = inst->label.second;
-                result=r[register_File[inst->rd]];
+                r[register_File[inst->rd]]= result;
 
-                cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+                cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") or " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
             }
              cout << "Memory is unchanged. " << endl;
             
@@ -625,7 +637,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                 programCounter = inst->label.second;
                  r[register_File[inst->rd]] = result;
 
-                 cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+                 cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") xor " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
              
              }
             cout << "Memory is unchanged. " << endl;
@@ -649,7 +661,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
 
                      r[register_File[inst->rd]] =result;
 
-                     cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
+                     cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") xor " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
              }
             cout << "Memory is unchanged. " << endl;
         }
@@ -745,7 +757,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                     if(it->label.first == inst->label_branching)
                     {
                         inst = it;
-                        inst --;
+                        inst --; 
                         programCounter = it->label.second;
                         branchingFlag = true;
                         break;
@@ -996,8 +1008,8 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
               }
               else
               {
-                  int64_t mul_Result = static_cast<int64_t>(r[register_File[inst->rs1]]) * static_cast<int64_t>(r[register_File[inst->rs2]]);
-                  r[register_File[inst->rd]] = static_cast<int32_t>(mul_Result); // Assuming 32-bit registers, storing lower 32 bits of result
+                  long long int mul_Result = static_cast<long long int>(r[register_File[inst->rs1]]) * static_cast<int64_t>(r[register_File[inst->rs2]]);
+                  r[register_File[inst->rd]] = static_cast<int>(mul_Result); // Assuming 32-bit registers, storing lower 32 bits of result
                                    programCounter = inst->label.second;
                   cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << r[register_File[inst->rs1]] << ") * "
                   << inst->rs2 << "(" << r[register_File[inst->rs2]] << ") -> " << inst->rd << "(" << r[register_File[inst->rd]] << ")" << endl;
@@ -1012,11 +1024,11 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
               }
               else
               {
-                  int64_t valueRS1 = static_cast<int64_t>(r[register_File[inst->rs1]]);
-                  int64_t valueRS2 = static_cast<int64_t>(r[register_File[inst->rs2]]);
+                  long long int valueRS1 = static_cast<long long int>(r[register_File[inst->rs1]]);
+                  long long int valueRS2 = static_cast<long long int>(r[register_File[inst->rs2]]);
                   
-                  int64_t multiplication_Result = valueRS1 * valueRS2;
-                  int32_t highest_Result = static_cast<int32_t>(multiplication_Result >> 32);
+                  long long int multiplication_Result = valueRS1 * valueRS2;
+                  int highest_Result = static_cast<int>(multiplication_Result >> 32);
                   
                   r[register_File[inst->rd]] = highest_Result;
                                    programCounter = inst->label.second;
@@ -1034,11 +1046,11 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
               }
               else
               {
-                  int64_t signed_Value = static_cast<int64_t>(r[register_File[inst->rs1]]);
-                  uint64_t unsigned_Value = static_cast<uint64_t>(r[register_File[inst->rs2]]);
+                 long long int signed_Value = static_cast<long long int>(r[register_File[inst->rs1]]);
+                 unsigned long long int unsigned_Value = static_cast< unsigned long long int>(r[register_File[inst->rs2]]);
                   
-                  int64_t ResultOfMultiplication = signed_Value * unsigned_Value;
-                  int32_t highest_Result = static_cast<int32_t>(ResultOfMultiplication >> 32);
+                  long long int ResultOfMultiplication = signed_Value * unsigned_Value;
+                  int highest_Result = static_cast<int>(ResultOfMultiplication >> 32);
                   
                   r[register_File[inst->rd]] = highest_Result;
                                    programCounter = inst->label.second;
@@ -1057,11 +1069,11 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
               }
               else
               {
-                  uint64_t valueRS1 = static_cast<uint64_t>(r[register_File[inst->rs1]]);
-                  uint64_t valueRS2 = static_cast<uint64_t>(r[register_File[inst->rs2]]);
+                  unsigned long long int valueRS1 = static_cast<unsigned long long int>(r[register_File[inst->rs1]]);
+                  unsigned long long int valueRS2 = static_cast<unsigned long long int>(r[register_File[inst->rs2]]);
                   
-                  uint64_t multiplicationResult = valueRS1 * valueRS2;
-                  uint32_t highResult = static_cast<uint32_t>(multiplicationResult >> 32);
+                  unsigned long long int multiplicationResult = valueRS1 * valueRS2;
+                  unsigned int highResult = static_cast<unsigned int>(multiplicationResult >> 32);
                   
                   r[register_File[inst->rd]] = highResult;
                                    programCounter = inst->label.second;
@@ -1117,8 +1129,8 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                   }
                   else
                   {
-                      uint32_t dividend = static_cast<uint32_t>(r[register_File[inst->rs1]]);
-                      uint32_t Resultofdivision = dividend / divisor;
+                      unsigned int dividend = static_cast<unsigned int >(r[register_File[inst->rs1]]);
+                      unsigned int  Resultofdivision = dividend / divisor;
                       r[register_File[inst->rd]] = Resultofdivision;
                       
                       cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << dividend << ") / "
@@ -1142,15 +1154,15 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
               }
               else
               {
-                  int32_t divisor = r[register_File[inst->rs2]];
+                  int divisor = r[register_File[inst->rs2]];
                   if (divisor == 0)
                   {
                       cout<<"we can't divide by zero!!"<<endl;
                   }
                   else
                   {
-                      int32_t dividend = r[register_File[inst->rs1]];
-                      int32_t remainder = dividend % divisor;
+                      int dividend = r[register_File[inst->rs1]];
+                      int remainder = dividend % divisor;
                       r[register_File[inst->rd]] = remainder;
                       
                       cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << dividend << ") % "
@@ -1169,15 +1181,15 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                   }
                   else
                   {
-                      int32_t divisor = static_cast<uint32_t>( r[register_File[inst->rs2]]);
+                      int divisor = static_cast<unsigned int>( r[register_File[inst->rs2]]);
                       if (divisor == 0)
                       {
                           cout<<"we can't divide by zero!!"<<endl;
                       }
                       else
                       {
-                          int32_t dividend =static_cast<uint32_t>( r[register_File[inst->rs1]]);
-                          int32_t remainder = dividend % divisor;
+                          int dividend =static_cast<unsigned int>( r[register_File[inst->rs1]]);
+                          int remainder = dividend % divisor;
                           r[register_File[inst->rd]] = remainder;
                           
                           cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << dividend << ") % "
@@ -1375,20 +1387,6 @@ int main() {
     
     vector<string> instructions;
     string input;
-    vector<string>program1={"addi s0, zero, 10","addi s1, zero, 15","add s3, s0, s1","sub s4, s1, s0"
-                            ,"and s5, s3, s4","or s6, s3, s4","xor s7, s3, s4","sw s5, 0(zero)","lw s8, 0(zero)"};
-    
-   vector<string> program2 = {
-       "",
-        "slli s10, s0, 2",    // Shift x22 left logical by 2 bits, store in x10
-        "add s10, s10, x25",   // Add x10 and x25, store result in x10
-        "lw s9, 0(s10)",       // Load word from memory address in x10 into x9
-        "bne s9, s1, Exit",   // If x9 is not equal to x24, branch to Exit
-        "addi s0, s0, 1",    // Add immediate 1 to x22, store result in x22
-        "beq zero, zero, Loop",  
-        // Unconditional branch to loop
-        "Exit: mul s10, s9, s8"
-    };
 
     cout << "Enter any data to be initially loaded into the memory (type 'finish' to exist the loop):" << endl;
     string add, val;
@@ -1412,43 +1410,24 @@ int main() {
     cout << "Enter instructions (type 'finish' to exist the loop):" << endl;
 
     // taking input until the user enters 'finish'
-     int choice;
-    cout << "Select an option:\n";
-    cout << "1. Enter instructions manually\n";
-    cout << "2. Run program1\n";
-    cout << "3. Run program2\n";
-    cin >> choice;
-
-    // Clear the input buffer
-   // cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-    switch (choice) {
-        case 1:
-            cout << "Enter instructions (type 'finish' to exit the loop):" << endl;
-            
-            while (true) {
-                getline(cin, input);
-                if (input == "finish") {
-                    break;
-                }
-                instructions.push_back(input);
-            }
+    while (true) {
+        getline(cin, input);
+        if (input == "finish") {
             break;
-        case 2:
-            instructions = program1;
-            break;
-        case 3:
-            instructions = program2;
-            break;
-        default:
-            cout << "Invalid choice. Exiting.\n";
-            return 1;
+        }
+        instructions.push_back(input);
     }
+    initialize();
 
     instructions.erase(instructions.begin());
     vector<types> res = read(instructions);
    
-
+    // // Output the result for demonstration
+    // for (const auto& t : res) {
+    //     cout << "label: " << t.label.first << " , func: " << t.func << ", rd: " << t.rd
+    //          << ", rs1: " << t.rs1 << ", rs2: " << t.rs2 << ", imm: " << t.imm
+    //          << ", branching_label: " << t.label_branching << endl;
+    // }
 
 
     bool repeat = false;
