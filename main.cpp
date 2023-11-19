@@ -1,16 +1,10 @@
-//
-//  main.cpp
-//  Assembly_project
-//
-//  Created by Amal Fouda on 10/11/2023.
-//
-
 #include <iostream>
 #include <vector>
 #include <sstream>
 #include <algorithm>
 #include <map>
 #include <bitset>
+#include <limits>
 
 using namespace std;
 
@@ -534,7 +528,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
                 int valueRS1 = r[register_File[inst->rs1]];
                 int valueRS2 = r[register_File[inst->rs2]];
                 int result = valueRS1 & valueRS2; // Bitwise AND operation
-                programCounter = inst->label.second; 
+                programCounter = inst->label.second;
                 r[register_File[inst->rd]] = result;
 
                 cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
@@ -562,7 +556,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
 
                  cout << "Executed: " << inst->func << " " << inst->rs1 << "(" << valueRS1 << ") & " << inst->rs2 << "(" << valueRS2 << ") -> " << inst->rd << "(" << result << ")" << endl;
 
-                programCounter = inst->label.second; 
+                programCounter = inst->label.second;
                 cout << "Memory is unchanged. " << endl;
              }
             
@@ -984,7 +978,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
              haltingflag=1;
             cout << "Executed: " << inst->func << " Program execution finsihed due to 'halt' instruction." << endl;
             
-        } 
+        }
          
           else if(inst->func == "ebreak")//40
         {
@@ -1205,7 +1199,7 @@ void Functions(vector<types>& instructions, vector<string> userInput, int starti
             cout<<"           Decimal                  Binary                         Hexadecimal "<<endl;
             for (const auto& reg : register_File) {
                 cout << reg.first << " (r[" << reg.second << "]): " << r[reg.second]<<"          0b" << bitset<32>(r[reg.second]) << "          " <<decimalToHex8Digits(r[reg.second])<<endl;
-            }          
+            }
             cout << "---------------------------" << endl;
   
             continue;
@@ -1381,6 +1375,20 @@ int main() {
     
     vector<string> instructions;
     string input;
+    vector<string>program1={"addi s0, zero, 10","addi s1, zero, 15","add s3, s0, s1","sub s4, s1, s0"
+                            ,"and s5, s3, s4","or s6, s3, s4","xor s7, s3, s4","sw s5, 0(zero)","lw s8, 0(zero)"};
+    
+   vector<string> program2 = {
+       "",
+        "slli s10, s0, 2",    // Shift x22 left logical by 2 bits, store in x10
+        "add s10, s10, x25",   // Add x10 and x25, store result in x10
+        "lw s9, 0(s10)",       // Load word from memory address in x10 into x9
+        "bne s9, s1, Exit",   // If x9 is not equal to x24, branch to Exit
+        "addi s0, s0, 1",    // Add immediate 1 to x22, store result in x22
+        "beq zero, zero, Loop",  
+        // Unconditional branch to loop
+        "Exit: mul s10, s9, s8"
+    };
 
     cout << "Enter any data to be initially loaded into the memory (type 'finish' to exist the loop):" << endl;
     string add, val;
@@ -1404,24 +1412,43 @@ int main() {
     cout << "Enter instructions (type 'finish' to exist the loop):" << endl;
 
     // taking input until the user enters 'finish'
-    while (true) {
-        getline(cin, input);
-        if (input == "finish") {
+     int choice;
+    cout << "Select an option:\n";
+    cout << "1. Enter instructions manually\n";
+    cout << "2. Run program1\n";
+    cout << "3. Run program2\n";
+    cin >> choice;
+
+    // Clear the input buffer
+   // cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    switch (choice) {
+        case 1:
+            cout << "Enter instructions (type 'finish' to exit the loop):" << endl;
+            
+            while (true) {
+                getline(cin, input);
+                if (input == "finish") {
+                    break;
+                }
+                instructions.push_back(input);
+            }
             break;
-        }
-        instructions.push_back(input);
+        case 2:
+            instructions = program1;
+            break;
+        case 3:
+            instructions = program2;
+            break;
+        default:
+            cout << "Invalid choice. Exiting.\n";
+            return 1;
     }
-    initialize();
 
     instructions.erase(instructions.begin());
     vector<types> res = read(instructions);
    
-    // // Output the result for demonstration
-    // for (const auto& t : res) {
-    //     cout << "label: " << t.label.first << " , func: " << t.func << ", rd: " << t.rd
-    //          << ", rs1: " << t.rs1 << ", rs2: " << t.rs2 << ", imm: " << t.imm
-    //          << ", branching_label: " << t.label_branching << endl;
-    // }
+
 
 
     bool repeat = false;
